@@ -22,15 +22,23 @@ export function useMediaActions(userId: string | null, onUnauthenticated: () => 
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: existingLike } = await supabase
           .from('likes')
-          .insert({ user_id: userId, media_id: mediaId });
+          .select('id')
+          .eq('user_id', userId)
+          .eq('media_id', mediaId)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (!existingLike) {
+          const { error } = await supabase
+            .from('likes')
+            .insert({ user_id: userId, media_id: mediaId });
+
+          if (error) throw error;
+        }
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      alert('Failed to update like. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -54,15 +62,23 @@ export function useMediaActions(userId: string | null, onUnauthenticated: () => 
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: existingFollow } = await supabase
           .from('follows')
-          .insert({ follower_id: userId, creator_name: creatorName });
+          .select('id')
+          .eq('follower_id', userId)
+          .eq('creator_name', creatorName)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (!existingFollow) {
+          const { error } = await supabase
+            .from('follows')
+            .insert({ follower_id: userId, creator_name: creatorName });
+
+          if (error) throw error;
+        }
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-      alert('Failed to update follow. Please try again.');
     } finally {
       setActionLoading(null);
     }
